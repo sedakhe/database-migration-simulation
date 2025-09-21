@@ -111,3 +111,8 @@ CREATE TABLE users_enriched_sink (
   'sink.buffer-flush.max-rows' = '1'
 );
 
+
+-- 7. Pipeline: stream enriched user events into Postgres
+INSERT INTO users_enriched_sink
+SELECT * FROM users_enriched_view;
+

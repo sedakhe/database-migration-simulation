@@ -1,0 +1,1 @@
+SET 'execution.checkpointing.interval' = '10s';

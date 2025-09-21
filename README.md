@@ -23,32 +23,31 @@ Stack used: Apache Flink + Kafka + Postgres
 
 ---
 
-3. **Run Flink setup (register tables, views, sink):**
+3. **Run Flink setup and launch job (register tables, views, sink):**
    ```bash
-   docker exec -it docker-jobmanager-1      /opt/flink/bin/sql-client.sh -i /opt/flink/usql/setup_noComments.sql
+   docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh -f /opt/flink/usql/01_set_checkpoint.sql
+   docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh -f /opt/flink/usql/02_create_users_cdc_raw.sql
+   docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh -f /opt/flink/usql/03_create_users_changes.sql
+   docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh -f /opt/flink/usql/04_create_users_latest.sql
+   docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh -f /opt/flink/usql/05_create_country_dim.sql
+   docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh -f /opt/flink/usql/06_create_users_enriched_view.sql
+   docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh -f /opt/flink/usql/07_create_users_enriched_sink.sql
+   docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh -f /opt/flink/usql/insert.sql
+
    ```
 
-   This starts the SQL client with all sources, views, and sink registered.
+   This starts the SQL client with all sources, views, sink registered, and launches the continuous job.
 
 ---
 
-4. **Start the streaming pipeline (inside SQL client):**
-   ```sql
-   SOURCE /opt/flink/usql/insert_noComments.sql;
-   ```
-
-   This launches the continuous job.
-
----
-
-5. **Publish CDC events to Kafka:**
+4. **Publish CDC events to Kafka:**
    ```bash
    python3 src/producers/cdc_producer.py      --file data/sample_events.json      --topic users_cdc      --bootstrap localhost:9092      --delay 0.5
    ```
 
 ---
 
-6. **Verify results in Postgres:**
+5. **Verify results in Postgres:**
    ```bash
    docker exec -it docker-postgres-1      psql -U app -d appdb -c "SELECT * FROM users_enriched ORDER BY user_id;"
    ```
