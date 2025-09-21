@@ -12,15 +12,15 @@ Stack used: Apache Flink + Kafka + Postgres
    docker compose up -d
    ```
 
-1.a **(When running for the first time - Initialize Postgres schema)**
-   ```bash
-   docker exec -i docker-postgres-1 psql -U app -d appdb < src/schemas/postgres.sql
-   -- Verify:
-   docker exec -it docker-postgres-1 psql -U app -d appdb -c "\dt"
-   ```
+   1.a **(When running for the first time - Initialize Postgres schema)**
+      ```bash
+      docker exec -i docker-postgres-1 psql -U app -d appdb < src/schemas/postgres.sql
+      -- Verify:
+      docker exec -it docker-postgres-1 psql -U app -d appdb -c "\dt"
+      ```
     
 
-2. **Run Flink job:**
+3. **Run Flink job:**
    ```bash
    docker cp src/flink_job/job.sql docker-jobmanager-1:/opt/flink/usql/job.sql
    docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh
@@ -28,12 +28,12 @@ Stack used: Apache Flink + Kafka + Postgres
    SOURCE /opt/flink/usql/job.sql;
    ```
 
-3. **Send CDC events:**
+4. **Send CDC events:**
    ```bash
    python3 src/producers/cdc_producer.py --file data/sample_events.json
    ```
 
-4. **Check results:**
+5. **Check results:**
     ```bash
     docker exec -it docker-postgres-1 psql -U app -d appdb -c "SELECT * FROM users_enriched ORDER BY user_id;"
     ```
