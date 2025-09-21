@@ -108,7 +108,7 @@ Kafka (CDC JSON) → Flink Normalize → Dedup (event-time) → Enrich → Postg
 cdc-flink-migration/
 ├── src/
 │   ├── flink_job/          # Flink SQL job
-│   │   └── job.sql
+│   │   └── *_*.sql         # Setup SQL scripts
 │   ├── producers/          # Kafka CDC producer
 │   │   └── cdc_producer.py
 │   └── schemas/            # Postgres schema
