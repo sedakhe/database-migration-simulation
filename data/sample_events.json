@@ -1,0 +1,53 @@
+[
+    {
+      "op": "c",
+      "after": {
+        "user_id": 101,
+        "name": "Daniel Kim",
+        "email": "daniel.kim@contoso.com",
+        "country_code": "US"
+      },
+      "timestamp_ms": 1726531200000
+    },
+    {
+      "op": "u",
+      "after": {
+        "user_id": 101,
+        "name": "Daniel J. Kim",
+        "email": "daniel.j.kim@contoso.com",
+        "country_code": "US"
+      },
+      "timestamp_ms": 1726531260000
+    },
+    {
+      "op": "c",
+      "after": {
+        "user_id": 202,
+        "name": "Priya Nair",
+        "email": "priya.nair@gmail.com",
+        "country_code": "IN"
+      },
+      "timestamp_ms": 1726531250000
+    },
+    {
+      "op": "d",
+      "before": {
+        "user_id": 101,
+        "name": "Daniel J. Kim",
+        "email": "daniel.j.kim@contoso.com",
+        "country_code": "US"
+      },
+      "timestamp_ms": 1726531240000
+    },
+    {
+      "op": "c",
+      "after": {
+        "user_id": 303,
+        "name": "Elena Fischer",
+        "email": "elena.fischer@outlook.de",
+        "country_code": "DE"
+      },
+      "timestamp_ms": 1726531270000
+    }
+  ]
+  
