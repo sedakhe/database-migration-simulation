@@ -14,7 +14,7 @@ Stack used: Apache Flink + Kafka + Postgres
 
    1.a **(When running for the first time - Initialize Postgres schema)**
       ```bash
-      docker exec -i docker-postgres-1 psql -U app -d appdb < src/schemas/postgres.sql
+      docker exec -i docker-postgres-1 psql -U app -d appdb < /Users/s0e04ij/database-migration-simulation/src/schemas/postgres.sql
       -- Verify:
       docker exec -it docker-postgres-1 psql -U app -d appdb -c "\dt"
       ```
