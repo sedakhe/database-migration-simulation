@@ -12,6 +12,14 @@ Stack used: Apache Flink + Kafka + Postgres
    docker compose up -d
    ```
 
+1.a **(When running for the first time - Initialize Postgres schema)**
+   ```bash
+   docker exec -i docker-postgres-1 psql -U app -d appdb < src/schemas/postgres.sql
+   -- Verify:
+   docker exec -it docker-postgres-1 psql -U app -d appdb -c "\dt"
+   ```
+    
+
 2. **Run Flink job:**
    ```bash
    docker cp src/flink_job/job.sql docker-jobmanager-1:/opt/flink/usql/job.sql
@@ -26,9 +34,9 @@ Stack used: Apache Flink + Kafka + Postgres
    ```
 
 4. **Check results:**
-   ```bash
-   psql "postgresql://app:app@localhost:5432/appdb" -c "SELECT * FROM users_enriched ORDER BY user_id;"
-   ```
+    ```bash
+    docker exec -it docker-postgres-1 psql -U app -d appdb -c "SELECT * FROM users_enriched ORDER BY user_id;"
+    ```
 
 ---
 
