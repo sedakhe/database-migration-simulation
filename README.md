@@ -178,6 +178,9 @@ python3 src/producers/cdc_producer.py   --file data/sample_events.json   --topic
    ```bash
    pytest -v 
    ```
+---
+
+## Architectural Decisions and Considerations
 
 ## Handling Out-of-Order CDC Events
 
