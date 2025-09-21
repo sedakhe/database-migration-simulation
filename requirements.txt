@@ -1,0 +1,4 @@
+# Required for Kafka producer
+kafka-python==2.0.2
+
+# Kafka client libraries, all else is standard library
