@@ -182,6 +182,15 @@ python3 src/producers/cdc_producer.py   --file data/sample_events.json   --topic
 
 ## Architectural Decisions and Considerations
 
+- **Kafka as CDC transport:** Reliable, replayable event bus to decouple source system and Flink 
+- **Flink SQL job:** Handles ordering, deduplication, and enrichment in a streaming-first way  
+- **Postgres sink:** Chosen as a simple, well-known OLTP target to demonstrate idempotent upserts  
+- **JSON format:** Easy to inspect for demo; could evolve to Avro/Protobuf with Schema Registry  
+- **Enrichment strategy:** Inline static dimension for simplicity; scalable alternatives include broadcast state or async lookups 
+- **Fault tolerance:** Relies on Flink checkpoints and idempotent upserts for recovery, rather than XA transactions  
+
+---
+
 ## Handling Out-of-Order CDC Events
 
 - **Event-time (`timestamp_ms`)** -> ensures ordering is based on when the change happened, not arrival time.
