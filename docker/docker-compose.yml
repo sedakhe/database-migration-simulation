@@ -44,6 +44,8 @@ services:
     command: jobmanager
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
+    volumes:
+      - ../src/flink_job:/opt/flink/usql
 
   taskmanager:
     image: flink:1.18.1-scala_2.12-java11
@@ -54,3 +56,5 @@ services:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
     deploy:
       replicas: 1
+    volumes:
+      - ../src/flink_job:/opt/flink/usql
