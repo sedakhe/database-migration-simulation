@@ -191,10 +191,10 @@ In production, we could expand the scope with additions like:
 
 ## Handling Out-of-Order Events
 
-- **Event-time (`timestamp_ms`)** → ensures ordering is based on when the change happened, not arrival time.
-- **Watermarks (10s)** → allow bounded lateness.
-- **ROW_NUMBER() deduplication** → keep only the latest row per user_id.
-- **DB guard (updated_at check)** → ensures late stale events cannot overwrite newer truth.
+- **Event-time (`timestamp_ms`)** -> ensures ordering is based on when the change happened, not arrival time.
+- **Watermarks (10s)** -> allow bounded lateness.
+- **ROW_NUMBER() deduplication** -> keep only the latest row per user_id.
+- **DB guard (updated_at check)** -> ensures late stale events cannot overwrite newer truth.
 
 Example from sample data:
 - Update at 10:05 arrives before delete at 10:04 (late).
@@ -204,7 +204,7 @@ Example from sample data:
 
 ## Exactly-Once Processing
 
-- **Source side:** Kafka + Flink checkpoints → exactly-once replay.
+- **Source side:** Kafka + Flink checkpoints -> exactly-once replay.
 - **Sink side (JDBC):** At-least-once by default (no XA/2PC).
 - **Our strategy:** Make sink **idempotent** via:
   - Primary-key upserts
