@@ -1,4 +1,8 @@
 # Required for Kafka producer
 kafka-python==2.0.2
 
+# Required for testing
+pytest>=7.0
+pandas>=1.3
+
 # Kafka client libraries, all else is standard library

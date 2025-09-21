@@ -16,6 +16,7 @@ CREATE TABLE users_enriched_sink (
   'driver' = 'org.postgresql.Driver',
   'username' = 'app',
   'password' = 'app',
-  'sink.max-retries' = '3',
-  'sink.buffer-flush.max-rows' = '1'
+  'sink.max-retries' = '5',
+  'sink.buffer-flush.max-rows' = '200',
+  'sink.buffer-flush.interval' = '2s'
 );

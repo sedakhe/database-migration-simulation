@@ -2,6 +2,9 @@
 -- 1. Enabling checkpoints for consistency
 SET 'execution.checkpointing.interval' = '10s';  -- Flink will snapshot its state every 10s, exactly-once in Kafka context
 
+SET 'parallelism.default' = '2';  -- working with 2 parallel instances
+
+SET 'table.exec.state.ttl' = '7 days';  -- setting state TTL to 7 days  
 
 -- 2. Defining source table: Kafka topic with CDC JSON
 CREATE TABLE users_cdc_raw (
@@ -19,6 +22,23 @@ CREATE TABLE users_cdc_raw (
   'format' = 'json',
   'json.ignore-parse-errors' = 'true'
 );
+
+
+-- 2a. Defining dead letter queue: Kafka topic for bad events
+
+-- Not dropping bad events, instead capturing them in a DLQ for reprocessing
+CREATE TABLE dead_letters (
+  raw STRING
+) WITH (
+  'connector'='kafka',
+  'topic'='users_cdc_dlq',
+  'properties.bootstrap.servers'='kafka:9092',
+  'format'='raw'
+);
+
+INSERT INTO dead_letters
+SELECT TO_JSON_STRING(*) FROM users_cdc_raw
+WHERE (op NOT IN ('c','u','d')) OR (timestamp_ms IS NULL);
 
 
 -- 3. Normalize CDC events (flatten before/after into a single row)

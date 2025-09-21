@@ -145,11 +145,11 @@ psql "postgresql://app:app@localhost:5432/appdb" -f src/schemas/postgres.sql
 
 ### 3. Start Flink SQL client & load job
 ```bash
-docker cp src/flink_job/job.sql docker-jobmanager-1:/opt/flink/usql/job.sql
+docker cp src/flink_job/setup_all.sql docker-jobmanager-1:/opt/flink/usql/setup_all.sql
 docker exec -it docker-jobmanager-1 /opt/flink/bin/sql-client.sh
 
 -- inside Flink SQL client:
-SOURCE /opt/flink/usql/job.sql;
+SOURCE /opt/flink/usql/setup_all.sql;
 ```
 
 ### 4. Publish CDC events
@@ -174,6 +174,22 @@ python3 src/producers/cdc_producer.py   --file data/sample_events.json   --topic
     - **Database:** appdb
   - Inspect table `users_enriched`.
 
+ ### 6. Testing locally
+   ```bash
+   pytest -v 
+   ```
+
+## Handling Out-of-Order CDC Events
+
+- **Event-time (`timestamp_ms`)** -> ensures ordering is based on when the change happened, not arrival time.
+- **Watermarks (10s)** -> allow bounded lateness.
+- **ROW_NUMBER() deduplication** -> keep only the latest row per user_id.
+- **DB guard (updated_at check)** -> ensures late stale events cannot overwrite newer truth.
+
+Example from sample data:
+- Update at 10:05 arrives before delete at 10:04 (late).
+- Flink dedup + DB guard ensure the **update wins**.
+
 ---
 
 ## Enrichment Logic
@@ -189,23 +205,19 @@ In production, we could expand the scope with additions like:
 
 ---
 
-## Handling Out-of-Order Events
+## Error Handling
 
-- **Event-time (`timestamp_ms`)** -> ensures ordering is based on when the change happened, not arrival time.
-- **Watermarks (10s)** -> allow bounded lateness.
-- **ROW_NUMBER() deduplication** -> keep only the latest row per user_id.
-- **DB guard (updated_at check)** -> ensures late stale events cannot overwrite newer truth.
-
-Example from sample data:
-- Update at 10:05 arrives before delete at 10:04 (late).
-- Flink dedup + DB guard ensure the **update wins**.
+- **Bad Events:** Malformed JSON ignored; invalid operations or missing fields routed to a Dead-Letter Queue (DLQ) Kafka topic (`users_cdc_dlq`) for later inspection.  
+- **DB Failures:** JDBC sink retries writes; Flink applies backpressure until the database recovers. Idempotent upserts with `updated_at` ensure retries never create duplicates.  
+- **Batching:** Mini-batches (`200 rows / 2s`) improve throughput without sacrificing correctness.  
+- **Trade-off:** We use upserts + DLQ instead of XA transactions, balancing resilience with simplicity and performance.  
 
 ---
 
 ## Exactly-Once Processing
 
-- **Source side:** Kafka + Flink checkpoints -> exactly-once replay.
-- **Sink side (JDBC):** At-least-once by default (no XA/2PC).
+- **Source side:** Kafka + Flink checkpoints -> exactly-once replay
+- **Sink side (JDBC):** At-least-once by default (no XA/2PC)
 - **Our strategy:** Make sink **idempotent** via:
   - Primary-key upserts
   - Guarded `updated_at` check
@@ -213,6 +225,44 @@ Example from sample data:
 Result: **effectively-once** outcomes.
 
 ---
+
+## Testing
+
+- **Producer Unit Tests (pytest):** validate argument parsing, JSON loading, and event validation in CDC producer.  
+- **Logic Tests (pandas):** simulate deduplication (latest event wins) and enrichment (joining country codes to names) to confirm business rules outside Flink  
+- **End-to-End:** e2e pipeline test by publishing sample CDC events and asserting results in Postgres  
+
+---
+
+## Monitoring
+
+- Start with **Flink UI** and **structured logging from producer**. Backpressure column in Flink UI to detect bottlenecks.
+
+- Could enable PrometheusReporter, Kafka JMX exporter; show a Grafana dashboard.
+
+---
+
+## Performance Optimization
+
+- **Sink batching:** JDBC sink flushes every 200 rows / 2s, instead of row-by-row -> higher throughput 
+- **Parallelism:** Increasing parallelism to match Kafka partitions  
+- **State TTL:** 7-day TTL to bound memory usage in long-running jobs 
+- **Producer batching:** Uses linger/batching, batch_size, compression_type can be enabled later
+- **Enrichment:** Inline lookup for small dims, broadcast state or async I/O for large datasets
+- **Monitoring:** Backpressure metrics in Flink UI
+
+---
+
+## Trade-offs Made
+
+- **Sink Guarantees:** Idempotent upserts + retries (at-least-once) over XA transactions -> resilience & simplicity 
+- **Schema Format:** JSON for demo speed/readability. Avro/Protobuf + Schema Registry for long-term  
+- **Enrichment:** Inlined small dim tables; broadcast state or async lookups for larger dims  
+- **Event Ordering:** 10s watermark, longer windows improve correctness but increase latency  
+- **Performance vs Correctness:** Batched sink writes (200 rows / 2s) boosting throughput; per-row flushes guarantee lower latency but waste resources.  
+
+---
+
 
 ## Useful Tools
 
